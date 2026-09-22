@@ -1,0 +1,24 @@
+# 数据与凭证 —— 绝不提交
+data/
+*.jsonl
+*.sha256
+.env
+.env.*
+
+# 运行产物
+runs/
+*.log
+completion_log.jsonl
+generated_answers.jsonl
+sizing.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
