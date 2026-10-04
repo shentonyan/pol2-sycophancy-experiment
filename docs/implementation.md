@@ -175,9 +175,11 @@ MAX_COMPLETION_TOKENS = 700_000
 
 | 状态 | 项 |
 |---|---|
-| ⬜ | `src/env_load.py` |
-| ⬜ | `src/select_records.py` |
-| ⬜ | `src/generate.py` |
+| ✅ | `src/env_load.py` |
+| ✅ | `src/select_records.py`（V2：聚类感知） |
+| ✅ | `src/validate_answers.py`（V2 新增） |
+| ✅ | `src/generate.py`（只用模拟客户端检查过流程，尚无真实 API 调用） |
+| ✅ | `tests/`（31 个单元测试：`python -m unittest discover -s tests`） |
 | ⬜ | `src/score.py` |
 | ⬜ | `src/extract.py` |
 | ⬜ | `src/pilot_sizing.py` |
@@ -188,7 +190,7 @@ MAX_COMPLETION_TOKENS = 700_000
 | ⬜ | 主运行 |
 | ⬜ | 分析报告 |
 
-> **当前状态**：本仓库交付的是**设计与实施计划**。上述脚本**尚未实现**，主实验**尚未运行**，因此**没有任何实验结果**。这一点被明确声明，而非留白不表。
+> **当前状态**（2026-10-05）：`env_load`、`select_records`、`validate_answers`、`generate` 已实现并通过单元测试；`generate` 只用模拟客户端检查过流程，**还没有任何真实 API 调用**。评分、分析、报告脚本尚未实现，主实验尚未运行，因此**没有任何实验结果**。这一点被明确声明，而非留白不表。
 
 ---
 
@@ -200,3 +202,30 @@ MAX_COMPLETION_TOKENS = 700_000
 | 投稿或发表 | **NOT_A_CAPABILITY** —— 同上 |
 | 取得的早期 PoL 论文全文 | **未获取** —— 存在但未获授权读取；因此不主张任何「最新版本」的超越性断言 |
 | 2026 年论文全文 | **未获取** —— 因此相关断言标记为 UNVERIFIED |
+
+---
+
+## 9. 已实现脚本的用法（V2）
+
+```powershell
+# 抽样（run_id 在预注册时固定，决定全部种子）
+python src/select_records.py --data-dir <含三个 sycophancy_*.jsonl 的目录> --run-id <RUN_ID> --out-dir data
+
+# 先导生成（真实调用，需要 .env 里有 DEEPSEEK_API_KEY）
+python src/generate.py --split pilot --env-file .env
+
+# 不调用 API，只检查流程
+python src/generate.py --split pilot --mock --mock-fault-rate 0.15
+
+# 复核冻结文件
+python src/validate_answers.py --answers data/pilot/generated_answers.jsonl --out data/pilot/answer_validation.json
+
+# 测试
+python -m unittest discover -s tests
+```
+
+- **共享前缀**：数据集里 persona 和问题是同一段文字，没法可靠拆开，所以评分提示的共享前缀用单一的 `[PERSONA AND QUESTION]` 块，取代 README §5.1 里分开的 `[PERSONA]` 和 `[QUESTION]`。
+- **生成提示**：A1 和 A2 的提示除了选项字母和选项文字之外逐字相同，不出现「谄媚」「迎合」「同意用户」之类的词，所以生成器对评分条件是盲的。测试里有检查。
+- **重试**：每个答案最多重试一次。格式问题（缺 `ANSWER` 行、字母不符、被截断）重试时加一句格式提示；长度比超出 [0.8, 1.25] 时，让较长的那个按较短者的词数重写。重试后仍不合格的记录被排除并计数，不会静默丢弃。
+- **预算**：`generate.py` 默认的调用数上限是计划调用数的 3 倍，prompt 和 completion token 上限按每次调用 700 和 320 个 token 折算，只是生成阶段的安全阀，不是主实验的上限（主实验的上限由先导实测导出，见 revision-v2.md §3.9）。
+- **已知风险**：political 的部分题目（例如对跨性别者社会接受度的看法）要求模型为某一立场写回复，`deepseek-chat` 可能拒绝。拒绝会被记录并排除，先导会给出拒绝率；如果拒绝集中在某几道题，需要在先导之后决定怎么处理，而不是悄悄丢掉。

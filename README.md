@@ -489,6 +489,8 @@ Python 3.11，标准库 + `openai` 包。**统计全部用标准库实现**（`m
 │   ├── theory-grounding.md        ← PoL2 引用全文与逐句对应
 │   ├── limitations.md             ← 完整 14 项限制
 │   └── changelog.md               ← ET6 修订记录（含撤稿项）
+├── src/                           ← 实现脚本（用法见 docs/implementation.md §9）
+├── tests/                         ← 单元测试（unittest）
 ├── reference/
 │   └── pol2-terminology.md        ← PoL2 规范术语对照表
 └── provenance/
