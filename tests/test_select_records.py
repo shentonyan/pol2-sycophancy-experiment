@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 
 import fixtures
-import select_records as sr
+from pol2_sycophancy import select_records as sr
 
 
 def run_select(data_dir: Path, out_dir: Path, run_id="t1", extra=None):

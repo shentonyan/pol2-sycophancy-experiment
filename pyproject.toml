@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pol2-sycophancy-experiment"
+version = "0.2.0"
+description = "Third-Party Condition Test for Sycophancy: a preregistered forced-choice experiment motivated by PoL2 theory."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "shentonyan" }]
+dependencies = []
+
+[project.optional-dependencies]
+api = ["openai>=1.0"]
+
+[project.scripts]
+pol2-select = "pol2_sycophancy.select_records:main"
+pol2-generate = "pol2_sycophancy.generate:main"
+pol2-validate = "pol2_sycophancy.validate_answers:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

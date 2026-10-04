@@ -5,9 +5,9 @@ import unittest
 from pathlib import Path
 
 import fixtures
-import generate as gen
-import select_records as sr
-import validate_answers as va
+from pol2_sycophancy import generate as gen
+from pol2_sycophancy import select_records as sr
+from pol2_sycophancy import validate_answers as va
 
 
 def make_sample(root: Path) -> tuple[Path, list[dict]]:

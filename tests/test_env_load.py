@@ -3,8 +3,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import fixtures  # noqa: F401  (设置 sys.path)
-import env_load
+import fixtures  # noqa: F401
+from pol2_sycophancy import env_load
 
 
 class EnvLoadTest(unittest.TestCase):

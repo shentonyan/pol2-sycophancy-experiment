@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite it as below. If you use the PoL2 theory, please also cite the NaturalDAO source listed under references."
+title: "The Third-Party Condition Test for Sycophancy"
+type: software
+version: 0.2.0
+date-released: 2026-10-05
+authors:
+  - alias: "shentonyan"
+repository-code: "https://github.com/shentonyan/pol2-sycophancy-experiment"
+license: Apache-2.0
+abstract: >-
+  A preregistered forced-choice experiment that operationalises the
+  public-versus-exclusive-private contrast of PoL2 (Proof of Love2) as a
+  measurable preference behaviour of language models. No experimental results
+  are reported yet.
+keywords:
+  - sycophancy
+  - language models
+  - preregistration
+  - PoL2
+references:
+  - type: generic
+    title: "NaturalDAO (PoL/ — Proof of Love2, PoL2 theory)"
+    authors:
+      - name: "DD周朝晖 and NaturalDAO contributors"
+    url: "https://github.com/naturaldao/NaturalDAO"
+    repository-code: "https://github.com/naturaldao/NaturalDAO"
+    commit: "780e9955b11a94d7cfb6bff654ed696fa70a7591"
+    date-released: 2026-09-18
+    license: CC0-1.0
+    notes: "Theory source for this project. Pinned commit verified to exist on branch main."
+  - type: article
+    title: "Discovering Language Model Behaviors with Model-Written Evaluations"
+    authors:
+      - name: "Ethan Perez et al."
+    year: 2022
+    notes: "Full author list at the arXiv page. Dataset source (anthropics/evals, sycophancy/)."
+    url: "https://arxiv.org/abs/2212.09251"

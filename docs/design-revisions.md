@@ -202,7 +202,7 @@ token 估计相应重算：`84,000` prompt / `48,000` completion。
 | 本设计 sha256 | `9a5ac40459e8e672ed96a0ddf0e2a702b809a03cb03531b98cb623a8025e867a` |
 | 字节数 | 106,576 |
 | 行数 | 1,621 |
-| 源 candidate-B sha256 | 见 `provenance/` |
+| 源 candidate-B sha256 | 见 [provenance.md](provenance.md) |
 | 匿名化映射 | 已封存，评审者未开启 |
 
 > **可审计性要求**：修订是**修订**而非「逐字节复制 + 补丁」（W14）。因此**对照源工件做 diff** 才是审计变更的正确方式；源 sha256 被记录以便锚定 diff。
