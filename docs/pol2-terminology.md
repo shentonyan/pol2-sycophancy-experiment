@@ -94,8 +94,8 @@ https://github.com/naturaldao/NaturalDAO/tree/main/PoL
 
 | 材料 | 状态 |
 |---|---|
-| `github.com/DAism2019/Proof-of-Love` | Readme 引用之，**但不在冻结路径内**；**未获取** |
-| 2025-10 ResearchGate 论文全文 | 引用之，**未获取** |
-| 2026 年 Wojtowicz et al. 论文全文 | **未获取**（只读摘要） |
+| `github.com/DAism2019/Proof-of-Love` | Readme 引用之，**但不在冻结路径内**；仓库存在（2026-10-05 核对），**正文未读** |
+| 2025-10 ResearchGate 论文全文 | 引用之；访问返回 HTTP 429，**未核验** |
+| 早期草稿提到的某篇 2026 年论文 | 无法定位，已删除（见 [references.md](references.md) §I） |
 
 > **后果**：任何「最新」断言**锚定到上述 commit id**，而非「最新」这个词。**本仓库不主张任何材料的超越性。**

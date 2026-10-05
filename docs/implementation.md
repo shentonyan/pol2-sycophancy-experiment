@@ -1,3 +1,5 @@
+> **路径与命令说明（2026-10-05）**：脚本已移入 `src/pol2_sycophancy/` 包，用 `pip install -e .` 安装后提供 `pol2-select`、`pol2-generate`、`pol2-validate` 命令。模型名 `deepseek-chat` 是早期设计所用名称，现行名称与 logprobs 支持情况见 [limitations.md](limitations.md) W15、W16。
+
 # 实施计划
 
 技术栈：**Python 3.11，标准库 + `openai` 包**。
@@ -7,7 +9,7 @@
 
 ## 1. 脚本职责与运行顺序
 
-### `src/env_load.py` — 凭证与脱敏
+### `src/pol2_sycophancy/env_load.py` — 凭证与脱敏
 
 - 显式读取 profile `.env`（**绝不**依赖继承环境——H3 已实测 `os.environ` 中键不存在）
 - 要求 `DEEPSEEK_API_KEY` 非空；缺失或为空 → `SystemExit(2)` 并给出清晰信息
@@ -15,7 +17,7 @@
 - 安装 **logger 脱敏过滤器**，使键值**永不**到达日志或工件
 - 只记录键的**存在性与长度**，从不记录值
 
-### `src/select_records.py` — 抽样
+### `src/pol2_sycophancy/select_records.py` — 抽样
 
 - 加载三个 JSONL
 - 用 `re.findall(r"\(([A-Z])\)")` 取 `len(set(...))` 解析选项数
@@ -23,7 +25,7 @@
 - 产出 `sample_main.jsonl` 与 `sample_pilot.jsonl`（**不相交**）
 - 产出选择报告：排除记录计数与原因
 
-### `src/generate.py` — 生成与冻结
+### `src/pol2_sycophancy/generate.py` — 生成与冻结
 
 - 每条记录构造**两个**生成提示（立场对齐槽、立场对立槽）
 - 发出**两次**调用/记录（**C2**），`temperature=0.0`、`max_tokens=320`、5 次指数退避
@@ -33,7 +35,7 @@
 - **断言**行数 `== 2 × 成功生成记录数`，不符即**中止**
 - 写 `data/generated_answers.sha256`
 
-### `src/score.py` — 评分
+### `src/pol2_sycophancy/score.py` — 评分
 
 - **先校验** `sha256(generated_answers.jsonl)` 与记录的摘要，不符即中止
 - 每条记录、每个 $r \in [0, R)$：从**同一冻结答案集**构造 A/B（及 B0/C，若启用）
@@ -50,19 +52,19 @@ attempt_count, error, timestamp_utc
 
 - **每次调用前**递增总调用计数器；依据上一调用返回的 usage 递增 prompt/completion token 计数器；**任一**上限触达即停止发放新调用
 
-### `src/extract.py` — 抽取
+### `src/pol2_sycophancy/extract.py` — 抽取
 
 - 按 `extract-v1` 七步规则解析保存的原始文本
 - 产出六桶计数：`decision_1` / `tie` / `unparseable` / `format_violation` / `refused` / `api_failure`
 - 拒绝正则优先于可解析性
 
-### `src/pilot_sizing.py` — 先导定规模
+### `src/pol2_sycophancy/pilot_sizing.py` — 先导定规模
 
 - 用先导实测方差，对**真实的聚类置换检验**做 Monte-Carlo 模拟
 - 输出 `sizing.json`：$N_{\mathrm{main}}$、$R$、模拟功效、B0 达成的长度匹配比
 - **硬闸门**：主运行被阻塞在 `sizing.json` 存在且与预注册一致上
 
-### `src/analyze.py` — 分析
+### `src/pol2_sycophancy/analyze.py` — 分析
 
 - 聚类置换检验（主 $p$ 值，10,000 次，种子化）
 - 精确双侧符号检验（补充，`math.comb`）
@@ -70,7 +72,7 @@ attempt_count, error, timestamp_utc
 - B0 解读规则裁决
 - **两方法符号不一致 → 报告 `unresolved`**
 
-### `src/report.py` — 报告
+### `src/pol2_sycophancy/report.py` — 报告
 
 - 渲染含**两个强制绑定句**的报告：
   1. 构造收窄句（与任何 $\hat\delta$/SSR 陈述**同段**）
@@ -109,29 +111,29 @@ openai>=1.0
 
 ```bash
 # 0. 环境
-python src/env_load.py                 # 校验凭证，失败即退出
+python -m pol2_sycophancy.env_load                 # 校验凭证，失败即退出
 
 # 1. 抽样
-python src/select_records.py           # → sample_main.jsonl, sample_pilot.jsonl
+pol2-select           # → sample_main.jsonl, sample_pilot.jsonl
 
 # 2. 先导（40 × 3）
-python src/generate.py  --split pilot
-python src/score.py     --split pilot
-python src/extract.py   --split pilot
+pol2-generate  --split pilot
+python src/pol2_sycophancy/score.py     --split pilot
+python src/pol2_sycophancy/extract.py   --split pilot
 
 # 3. 定规模 → 写入预注册（硬闸门）
-python src/pilot_sizing.py             # → sizing.json
+python src/pol2_sycophancy/pilot_sizing.py             # → sizing.json
 
 # 4. 主运行（不得早于上一步的哈希）
-python src/generate.py  --split main
-python src/score.py     --split main
-python src/extract.py   --split main
+pol2-generate  --split main
+python src/pol2_sycophancy/score.py     --split main
+python src/pol2_sycophancy/extract.py   --split main
 
 # 5. 分析
-python src/analyze.py
+python src/pol2_sycophancy/analyze.py
 
 # 6. 报告
-python src/report.py                   # → report.md
+python src/pol2_sycophancy/report.py                   # → report.md
 ```
 
 ---
@@ -175,16 +177,16 @@ MAX_COMPLETION_TOKENS = 700_000
 
 | 状态 | 项 |
 |---|---|
-| ✅ | `src/env_load.py` |
-| ✅ | `src/select_records.py`（V2：聚类感知） |
-| ✅ | `src/validate_answers.py`（V2 新增） |
-| ✅ | `src/generate.py`（只用模拟客户端检查过流程，尚无真实 API 调用） |
-| ✅ | `tests/`（31 个单元测试：`python -m unittest discover -s tests`） |
-| ⬜ | `src/score.py` |
-| ⬜ | `src/extract.py` |
-| ⬜ | `src/pilot_sizing.py` |
-| ⬜ | `src/analyze.py` |
-| ⬜ | `src/report.py` |
+| ✅ | `src/pol2_sycophancy/env_load.py` |
+| ✅ | `src/pol2_sycophancy/select_records.py`（V2：聚类感知） |
+| ✅ | `src/pol2_sycophancy/validate_answers.py`（V2 新增） |
+| ✅ | `src/pol2_sycophancy/generate.py`（只用模拟客户端检查过流程，尚无真实 API 调用） |
+| ✅ | `tests/`（31 个单元测试：`python -m unittest discover -s tests`，先 `pip install -e .`） |
+| ⬜ | `src/pol2_sycophancy/score.py` |
+| ⬜ | `src/pol2_sycophancy/extract.py` |
+| ⬜ | `src/pol2_sycophancy/pilot_sizing.py` |
+| ⬜ | `src/pol2_sycophancy/analyze.py` |
+| ⬜ | `src/pol2_sycophancy/report.py` |
 | ⬜ | `pilot/` 先导运行与定规模 |
 | ⬜ | 预注册工件（`prereg.yaml` + 哈希） |
 | ⬜ | 主运行 |
@@ -209,16 +211,16 @@ MAX_COMPLETION_TOKENS = 700_000
 
 ```powershell
 # 抽样（run_id 在预注册时固定，决定全部种子）
-python src/select_records.py --data-dir <含三个 sycophancy_*.jsonl 的目录> --run-id <RUN_ID> --out-dir data
+pol2-select --data-dir <含三个 sycophancy_*.jsonl 的目录> --run-id <RUN_ID> --out-dir data
 
 # 先导生成（真实调用，需要 .env 里有 DEEPSEEK_API_KEY）
-python src/generate.py --split pilot --env-file .env
+pol2-generate --split pilot --env-file .env
 
 # 不调用 API，只检查流程
-python src/generate.py --split pilot --mock --mock-fault-rate 0.15
+pol2-generate --split pilot --mock --mock-fault-rate 0.15
 
 # 复核冻结文件
-python src/validate_answers.py --answers data/pilot/generated_answers.jsonl --out data/pilot/answer_validation.json
+pol2-validate --answers data/pilot/generated_answers.jsonl --out data/pilot/answer_validation.json
 
 # 测试
 python -m unittest discover -s tests

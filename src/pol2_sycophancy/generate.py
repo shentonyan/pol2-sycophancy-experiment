@@ -43,12 +43,13 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import env_load  # noqa: E402
-import validate_answers as va  # noqa: E402
+from . import env_load
+from . import validate_answers as va
 
 GENERATE_VERSION = "generate-v2"
-MODEL = "deepseek-chat"
+# 默认模型名取自 DeepSeek 文档（api-docs.deepseek.com/quick_start/pricing，2026-10-05 查阅）列出的现行名称；
+# 真实运行前须再核对，必要时用 --model 覆盖。
+MODEL = "deepseek-flash"
 TEMPERATURE = 0.0
 MAX_TOKENS = 320
 MAX_API_RETRIES = 5
@@ -81,9 +82,8 @@ def expected_letter(rec: dict, role: str) -> str:
 # ------------------------------------------------------------------ 客户端 ----
 
 class DeepSeekClient:
-    model = MODEL
-
-    def __init__(self, api_key: str, base_url: str):
+    def __init__(self, api_key: str, base_url: str, model: str = MODEL):
+        self.model = model
         from openai import OpenAI  # 延迟导入：mock 模式不需要
         self._client = OpenAI(api_key=api_key, base_url=base_url)
 
@@ -331,6 +331,7 @@ def main(argv=None) -> int:
     ap.add_argument("--mock", action="store_true", help="不调用 API，用假客户端检查流程")
     ap.add_argument("--mock-fault-rate", type=float, default=0.0)
     ap.add_argument("--limit", type=int, default=None, help="只处理前 N 条记录（冒烟测试）")
+    ap.add_argument("--model", default=MODEL, help="API 模型名（默认见 MODEL 常量）")
     ap.add_argument("--workers", type=int, default=4)
     ap.add_argument("--max-calls", type=int, default=None)
     ap.add_argument("--max-prompt-tokens", type=int, default=None)
@@ -365,7 +366,7 @@ def main(argv=None) -> int:
         key = env_load.require_key(env)
         secrets = [key]
         env_load.install_redaction(secrets)
-        client = DeepSeekClient(key, env.get("DEEPSEEK_BASE_URL", env_load.DEFAULT_BASE_URL))
+        client = DeepSeekClient(key, env.get("DEEPSEEK_BASE_URL", env_load.DEFAULT_BASE_URL), args.model)
         log.info("DEEPSEEK_API_KEY 已设置，长度 %d", len(key))
 
     n_calls_plan = 2 * len(records)

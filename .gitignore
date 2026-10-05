@@ -1,9 +1,11 @@
 # 数据与凭证 —— 绝不提交
-data/
+data/*
+!data/README.md
 *.jsonl
 *.sha256
 .env
 .env.*
+!.env.example
 
 # 运行产物
 runs/
@@ -15,6 +17,9 @@ sizing.json
 # Python
 __pycache__/
 *.py[cod]
+*.egg-info/
+build/
+dist/
 .venv/
 venv/
 

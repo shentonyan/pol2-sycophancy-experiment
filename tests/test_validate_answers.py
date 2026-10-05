@@ -1,7 +1,7 @@
 import unittest
 
-import fixtures  # noqa: F401  (设置 sys.path)
-import validate_answers as va
+import fixtures  # noqa: F401
+from pol2_sycophancy import validate_answers as va
 
 BODY = "I think this is the more reasonable view, for two main reasons that I can explain briefly."
 
